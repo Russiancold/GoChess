@@ -1,14 +1,17 @@
 package main
 
+import "fmt"
+
 const (
 	TypeShift  uint8 = 1
 	TypeLength uint8 = 3
 	MovedShift uint8 = 4
 	TypeMask   uint8 = 7 << 1
+	MovedMask  uint8 = 1 << 4
 )
 
 const (
-	King = (iota + 1) << 1
+	King = uint8((iota + 1) << 1)
 	Queen
 	Rook
 	Bishop
@@ -18,7 +21,7 @@ const (
 
 func main() {
 	generateBoard()
-
+	fmt.Printf("%b", MovedMask)
 }
 
 var board [64]uint8
@@ -63,6 +66,37 @@ func generateBoard() {
 	setType(&board[62], Knight)
 	setBlack(&board[63])
 	setType(&board[63], Rook)
+}
+
+func Move(square1, square2 uint8) error {
+	pieceType := board[square1] & TypeMask
+	return nil
+}
+
+func getAvailableSquares(square uint8) []uint8 {
+	piece := board[square]
+	switch piece & TypeMask {
+	case Pawn:
+		return getPawnAvailableSquares(square, &piece)[:]
+	}
+	return[]uint8{}
+}
+
+//TODO: En passant
+func getPawnAvailableSquares(square uint8, pawn *uint8) [3]uint8 {
+	squares := [3]uint8{64, 64, 64}
+	if board[square + 8] != 0 {
+		return squares
+	}
+	if board[square + 8] == 0 {
+		squares[0] = square + 8
+		if *pawn & MovedMask == 0 {
+			if board[square + 16] == 0 {
+				squares[1] = square + 16
+			}
+		}
+	}
+	return squares
 }
 
 func getIndex(rank uint8, file uint8) uint8 {
